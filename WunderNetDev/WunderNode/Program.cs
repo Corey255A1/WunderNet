@@ -1,4 +1,26 @@
-﻿using System;
+﻿/**
+ * Author: Corey Wunderlich
+ * Date: 3/25/16
+ * Description: Simple command testing utility for the WunderLayer.
+ * 
+ * Since this is a very quick and dirty tester, make sure all of the params are filled.
+ * There aren't checks.
+ * 
+ * Open multiple instances of the program with unique node names
+ * and they can communicate with each other.
+ * 
+ * WunderNetTest.exe [node name] - this will start the command line tool 
+ *   and that instances name will be node name.
+ * 
+ * Command Line commands:
+ * discover - Every instance or Node will respond back and be printed to the command line
+ * send [node name] [string] - Send a string to a node. 
+ *      Node name case sensitive. String can be arbitrary. Receiver will print.
+ * describe [node name] - Send the describe request to a node. 
+ *      The response will be printed to the command line.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
