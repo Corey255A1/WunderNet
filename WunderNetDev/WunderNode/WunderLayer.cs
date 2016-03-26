@@ -17,7 +17,7 @@ using System.Net.Sockets;
 using System.Net;
 using WunderNetLayer;
 
-namespace WunderNode
+namespace WunderNetNode
 {
     public class BasePacketEventArgs : EventArgs
     {
@@ -32,7 +32,7 @@ namespace WunderNode
         public DescriptionPacket packet;
     }
     
-    class WunderLayer
+    public class WunderLayer
     {
         WunderNet _TheNet;
         public string Identifer;

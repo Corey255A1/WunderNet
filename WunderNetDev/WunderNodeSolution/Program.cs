@@ -25,14 +25,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WunderNode;
+using WunderNetNode;
 namespace WunderNetTest
 {
     class Program
     {
         static void Main(string[] args)
         {
-
             WunderLayer wl;
             StandardFeature[] features = new StandardFeature[4];
             features[0] = new StandardFeature("MotorLeft", FeatureBaseTypes.INTVAL, FeatureIOTypes.OUTPUT);

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WunderNetTest", "WunderNode\WunderNetTest.csproj", "{3847FA8C-157F-41FA-8998-C3962E891031}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WunderNetTest", "WunderNodeSolution\WunderNetTest.csproj", "{3847FA8C-157F-41FA-8998-C3962E891031}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WunderNode", "WunderNode\WunderNode.csproj", "{76346BB1-6EEF-43B2-9AE1-9ED4DC29AA3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{3847FA8C-157F-41FA-8998-C3962E891031}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3847FA8C-157F-41FA-8998-C3962E891031}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3847FA8C-157F-41FA-8998-C3962E891031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76346BB1-6EEF-43B2-9AE1-9ED4DC29AA3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76346BB1-6EEF-43B2-9AE1-9ED4DC29AA3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76346BB1-6EEF-43B2-9AE1-9ED4DC29AA3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76346BB1-6EEF-43B2-9AE1-9ED4DC29AA3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 
-namespace WunderNode
+namespace WunderNetNode
 {
     public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, DATABLOCK }
     public enum FeatureIOTypes { INPUT, OUTPUT, INOUT }
