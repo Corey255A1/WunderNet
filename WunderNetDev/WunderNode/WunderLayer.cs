@@ -10,6 +10,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,34 +37,43 @@ namespace WunderNetNode
     {
         WunderNet _TheNet;
         public string Identifer;
-        public StandardFeature[] Features;
+        public ArrayList Features;
         public event EventHandler<BasePacketEventArgs> BasePacketReceived;
         public event EventHandler<StringDataPacketEventArgs> StringDataReceived;
         public event EventHandler<DescriptionPacketEventArgs> DescriptionReceived;
-
+        public WunderLayer(string id)
+        {
+            this.WunderLayerSharedConstructor(id, null, "", 1000);
+        }
+        public WunderLayer(string id, string ip, int port)
+        {
+            this.WunderLayerSharedConstructor(id, null, ip, port);
+        }
         public WunderLayer(string id, StandardFeature[] features)
         {
-            this.Identifer = id;
-            this.Features = features;
-
-            _TheNet = new WunderNet();
-            _TheNet.SetTXPort(1000);
-            _TheNet.StartListening(1000);
-            _TheNet.WunderNetEvent += ProcessWunderNet;
-
-            SendOnline();
+            this.WunderLayerSharedConstructor(id, features, "", 1000);
         }
-        public WunderLayer(string ip, int port, string id, StandardFeature[] features)
+        public WunderLayer(string id, StandardFeature[] features, string ip, int port)
         {
+            this.WunderLayerSharedConstructor(id, features, ip, port);
+        }
+        private void WunderLayerSharedConstructor(string id, StandardFeature[] features, string ip, int port)
+        {
+            this.Features = new ArrayList();
             this.Identifer = id;
-            this.Features = features;
+            if (features != null)
+            {
+                foreach (StandardFeature sf in features)
+                {
+                    this.Features.Add(sf);
+                }
+            }
 
             _TheNet = new WunderNet();
-            _TheNet.SetTXPort(ip,port);
+            if (ip != "") _TheNet.SetTXPort(ip, port);
+            else _TheNet.SetTXPort(port);
             _TheNet.StartListening(port);
             _TheNet.WunderNetEvent += ProcessWunderNet;
-
-            SendOnline();
         }
 
         public void SendDiscover()
@@ -89,6 +99,18 @@ namespace WunderNetNode
             dp.ReceiverID = receiver;
             dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
             foreach(StandardFeature f in sf)
+            {
+                dp.AddFeature(f);
+            }
+            _TheNet.SendPacket(dp.GetBytes());
+        }
+        public void SendDescription(string receiver, ArrayList sf)
+        {
+            DescriptionPacket dp = new DescriptionPacket();
+            dp.SenderID = Identifer;
+            dp.ReceiverID = receiver;
+            dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
+            foreach (StandardFeature f in sf)
             {
                 dp.AddFeature(f);
             }

@@ -8,9 +8,13 @@ namespace WunderNetNode
 {
     public class WunderNode : WunderLayer
     {
-        public WunderNode(string id, StandardFeature[] features): base(id, features)
+        public WunderNode(string id): base(id)
         {
-
+            this.SendOnline();
+        }
+        public WunderNode(string id, string ip, int port): base(id, ip, port)
+        {
+            this.SendOnline();
         }
 
 
