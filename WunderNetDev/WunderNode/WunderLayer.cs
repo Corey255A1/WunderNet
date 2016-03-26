@@ -53,6 +53,18 @@ namespace WunderNetNode
 
             SendOnline();
         }
+        public WunderLayer(string ip, int port, string id, StandardFeature[] features)
+        {
+            this.Identifer = id;
+            this.Features = features;
+
+            _TheNet = new WunderNet();
+            _TheNet.SetTXPort(ip,port);
+            _TheNet.StartListening(port);
+            _TheNet.WunderNetEvent += ProcessWunderNet;
+
+            SendOnline();
+        }
 
         public void SendDiscover()
         {
