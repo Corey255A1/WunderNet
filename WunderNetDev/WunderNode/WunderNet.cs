@@ -51,7 +51,21 @@ namespace WunderNetLayer
         }
         public void SetTXPort(int port)
         {
-            _TXPort = new IPEndPoint(IPAddress.Parse("192.168.0.255"), port);
+            IPAddress[] thisIps = Dns.GetHostAddresses(Dns.GetHostName());
+            foreach (IPAddress ip in thisIps)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    string strip = ip.ToString();
+                    strip = (strip.Remove(strip.LastIndexOf('.')) + ".255");
+                    _TXPort = new IPEndPoint(IPAddress.Parse(strip), port);
+                    break;
+                }
+            }
+        }
+        public void SetTXPort(string ip, int port)
+        {
+            _TXPort = new IPEndPoint(IPAddress.Parse(ip), port);
         }
         public void StartListening(int port)
         {
