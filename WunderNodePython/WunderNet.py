@@ -6,15 +6,16 @@ import thread
 
 class WunderNet:
 	_bRunServer = 0
-	def __init__(self):
+	def __init__(self,broadcastaddr):
 		self.udpPort = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self._registered_listeners = []
+		self.baddr = broadcastaddr
 	
 	def RegisterCallback(self, function):
 		self._registered_listeners.append(function)
 	
 	def SendPacket(self, packet):
-		self.udpPort.sendto(packet, ("192.168.0.255",1000))
+		self.udpPort.sendto(packet, (self.baddr,1000))
 		
 	def StartListening(self, port):
 		if not self._bRunServer:

@@ -5,10 +5,10 @@ import WunderNet
 import WunderPackets
 
 class WunderLayer:
-	def __init__(self, id):
+	def __init__(self, id, baddr):
 		self.Identifier = id
 		self.FeatureList = []
-		self.TheNet = WunderNet.WunderNet()
+		self.TheNet = WunderNet.WunderNet(baddr)
 		self.TheNet.RegisterCallback(self.ProcessWunderNet)
 		self.TheNet.StartListening(1000)
 		
