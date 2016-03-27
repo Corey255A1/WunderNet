@@ -13,8 +13,8 @@ class WunderNet:
 	def RegisterCallback(self, function):
 		self._registered_listeners.append(function)
 	
-	def SendPacket(packet):
-		self.udpPort.sendto(packet, "192.168.0.255")
+	def SendPacket(self, packet):
+		self.udpPort.sendto(packet, ("192.168.0.255",1000))
 		
 	def StartListening(self, port):
 		if not self._bRunServer:
