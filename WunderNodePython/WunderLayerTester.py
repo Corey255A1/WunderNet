@@ -7,7 +7,7 @@ import WunderPackets
 def PrintStringData(sdBlock):
 	print sdBlock.SenderID + ": " + sdBlock.Data
 
-testWunderLayer = WunderLayer.WunderLayer('t2','192.168.0.255')
+testWunderLayer = WunderLayer.WunderLayer('t5','192.168.0.255')
 
 testWunderLayer.SendOnline()
 testWunderLayer.RegisterForStringDataPackets(PrintStringData)

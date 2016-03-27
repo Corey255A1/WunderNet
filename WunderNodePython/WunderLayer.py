@@ -65,10 +65,12 @@ class WunderLayer:
 	
 	def ProcessWunderNet(self,data,*args):
 		if WunderPackets.CheckHeader(data):
+			# print 'WunderData Found'
 			p = WunderPackets.BasePacket()
 			p.InitFromPacket(data)
 			if p.SenderID == self.Identifier:
 				return
+			# print p.SenderID + ":" + str(p.PacketType)	
 			self._packetFunctions[p.PacketType](p, data);
 	
 	def ProcessBasePacket(self, wpacket, rawdata):

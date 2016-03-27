@@ -8,6 +8,7 @@ class WunderNet:
 	_bRunServer = 0
 	def __init__(self,broadcastaddr):
 		self.udpPort = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.udpPort.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 		self._registered_listeners = []
 		self.baddr = broadcastaddr
 	
@@ -15,6 +16,7 @@ class WunderNet:
 		self._registered_listeners.append(function)
 	
 	def SendPacket(self, packet):
+		print 'Sending packet'
 		self.udpPort.sendto(packet, (self.baddr,1000))
 		
 	def StartListening(self, port):
@@ -35,6 +37,6 @@ class WunderNet:
 			if not data:
 				time.sleep(.1)
 				break
-				
+			# print 'got data'	
 			for callback in self._registered_listeners:
 				thread.start_new_thread(callback,(data,1))
