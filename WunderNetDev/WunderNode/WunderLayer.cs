@@ -72,8 +72,9 @@ namespace WunderNetNode
             _TheNet = new WunderNet();
             if (ip != "") _TheNet.SetTXPort(ip, port);
             else _TheNet.SetTXPort(port);
-            _TheNet.StartListening(port);
             _TheNet.WunderNetEvent += ProcessWunderNet;
+            _TheNet.StartListening(port);
+            
         }
 
         public void SendDiscover()
