@@ -51,24 +51,40 @@ namespace WunderNetTest
             wl.BasePacketReceived += BasePacketReceived;
             wl.StringDataReceived += StringDataReceived;
             wl.DescriptionReceived += DescriptionReceived;
+            wl.FeatureUpdateReceived += FeatureUpdateReceived;
+
 
             string ConsoleIn = "";
             while ((ConsoleIn = Console.ReadLine()) != "stop")
             {
                 string[] testing = ConsoleIn.Split(new char[] { ' ' }, 2);
-                if (testing[0] == "discover")
+                switch(testing[0])
                 {
-                    wl.SendDiscover();
+                    case "discover":
+                        wl.SendDiscover(); 
+                        break;
+                    case "send":
+                        testing = testing[1].Split(new char[] { ' ' }, 2);
+                        wl.SendStringData(testing[0], testing[1]);
+                        break;
+                    case "describe": 
+                        wl.SendDescribe(testing[1]); 
+                        break;
+                    case "update":
+                        {
+                            testing = testing[1].Split(new char[] { ' ' }, 4);
+                            switch (((FeatureBaseTypes)Convert.ToInt32(testing[2])))
+                            {
+                                case FeatureBaseTypes.INTVAL:
+                                    wl.SendFeatureUpdate(testing[0], testing[1], FeatureBaseTypes.INTVAL, Convert.ToUInt32(testing[3])); break;
+                                case FeatureBaseTypes.STRING:
+                                    wl.SendFeatureUpdate(testing[0], testing[1], FeatureBaseTypes.STRING, testing[3]); break;
+                            }
+                        }break;
+                        
+
                 }
-                else if(testing[0] == "send")
-                {
-                    testing = testing[1].Split(new char[] { ' ' }, 2);
-                    wl.SendStringData(testing[0], testing[1]);
-                }
-                else if(testing[0] == "describe")
-                {
-                    wl.SendDescribe(testing[1]);
-                }
+
             }
             wl.Disconnect();
         }
@@ -95,6 +111,31 @@ namespace WunderNetTest
                 case PacketTypes.IDENTIFY: Console.WriteLine(e.packet.SenderID); break;
                 case PacketTypes.ONLINE: Console.WriteLine(e.packet.SenderID + " is now Online"); break;
                 case PacketTypes.OFFLINE: Console.WriteLine(e.packet.SenderID + " is now Offline"); break;
+            }
+        }
+        private static void FeatureUpdateReceived(object sender, FeatureUpdatePacketEventArgs e)
+        {
+            switch((FeatureBaseTypes)e.packet.FeatureBaseType)
+            {
+                case FeatureBaseTypes.INTVAL:
+                    {
+                        uint val = BitConverter.ToUInt32(e.packet.Data, 0);
+                        Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val.ToString());
+                        break;
+                    }
+                case FeatureBaseTypes.ONOFF:
+                    {
+                        bool val = BitConverter.ToBoolean(e.packet.Data, 0);
+                        Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val.ToString());
+                        break;
+                    }
+                case FeatureBaseTypes.STRING:
+                    {
+                        string val = Encoding.ASCII.GetString(e.packet.Data);
+                        Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val);
+                        break;
+                    }
+
             }
         }
 

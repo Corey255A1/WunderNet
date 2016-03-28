@@ -14,9 +14,9 @@ using System.Collections;
 
 namespace WunderNetNode
 {
-    public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, DATABLOCK }
+    public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, DATABLOCK, STRING, UPDATE, COMMAND }
     public enum FeatureIOTypes { INPUT, OUTPUT, INOUT }
-    public enum FeatureBaseTypes { ONOFF, INTVAL }
+    public enum FeatureBaseTypes { ONOFF, INTVAL, STRING, DATABLOCK }
     public interface WunderPacket
     {
         byte[] GetBytes();
@@ -133,6 +133,111 @@ namespace WunderNetNode
             offset += b.Length;
             System.Buffer.BlockCopy(c, 0, block, offset, c.Length);
             return block;
+        }
+    }
+    public class RawDataPacket : BasePacket
+    {
+        private Int32 _dataSize;
+        private byte[] _data;
+        public byte[] Data
+        {
+            get { return _data;  }
+            set { _data = value; _dataSize = _data.Length; }
+        }
+
+        public RawDataPacket() { }
+        public RawDataPacket(byte[] b): base(b)
+        {
+            int offset = BASESIZE;
+            this._dataSize = BitConverter.ToInt32(b, offset); offset += 4;
+            this.Data = new byte[this._dataSize];
+            System.Buffer.BlockCopy(b, offset, this.Data, 0, this._dataSize);
+
+        }
+
+        public override byte[] GetBytes()
+        {
+            byte[] a = base.GetBytes();
+            byte[] b = BitConverter.GetBytes(this._dataSize);
+            byte[] c = this.Data;
+
+            byte[] block = new byte[a.Length + b.Length + c.Length];
+            int offset = 0;
+            System.Buffer.BlockCopy(a, 0, block, offset, a.Length);
+            offset += a.Length;
+            System.Buffer.BlockCopy(b, 0, block, offset, b.Length);
+            offset += b.Length;
+            System.Buffer.BlockCopy(c, 0, block, offset, c.Length);
+            return block;
+        }
+    }
+
+    public class FeatureUpdate : BasePacket
+    {
+        private string _featureName;
+        public string FeatureName
+        {
+            get { return _featureName; }
+            set
+            {
+                _featureName = value.TrimEnd();
+                if (_featureName.Length > 32) _featureName = value.Substring(0, 32);
+            }
+        }
+        public Int32 FeatureBaseType;
+        private Int32 _dataSize;
+        private byte[] _data;
+        public byte[] Data
+        {
+            get { return _data; }
+            set { _data = value; _dataSize = _data.Length; }
+        }
+
+        public FeatureUpdate() { }
+        public FeatureUpdate(string sender, string receiver, string featureName, FeatureBaseTypes type)
+        {
+            this.SenderID = sender;
+            this.ReceiverID = receiver;
+            this.PacketType = (Int32)PacketTypes.UPDATE;
+            this.FeatureName = featureName;
+            this.FeatureBaseType = (Int32)type;
+        }
+        public FeatureUpdate(byte[] b) : base(b)
+        {
+            int offset = BASESIZE;
+            this.FeatureName = Encoding.ASCII.GetString(b, offset, 32); offset += 32;
+            this.FeatureBaseType = BitConverter.ToInt32(b, offset); offset += 4;
+            this._dataSize = BitConverter.ToInt32(b, offset); offset += 4;
+            this.Data = new byte[this._dataSize];
+            System.Buffer.BlockCopy(b, offset, this.Data, 0, this._dataSize);
+        }
+
+        public override byte[] GetBytes()
+        {
+            byte[] a = base.GetBytes();
+            string s = FeatureName;
+            if (s.Length < 32) s = s.PadRight(32, ' ');
+            byte[] b = Encoding.ASCII.GetBytes(s);
+            byte[] c = BitConverter.GetBytes(this.FeatureBaseType);
+            byte[] d = BitConverter.GetBytes(this._dataSize);
+            byte[] e = this.Data;
+
+
+            byte[] block = new byte[a.Length + b.Length + c.Length + d.Length + e.Length];
+            int offset = 0;
+            System.Buffer.BlockCopy(a, 0, block, offset, a.Length);
+            offset += a.Length;
+            System.Buffer.BlockCopy(b, 0, block, offset, b.Length);
+            offset += b.Length;
+            System.Buffer.BlockCopy(c, 0, block, offset, c.Length);
+            offset += c.Length;
+            System.Buffer.BlockCopy(d, 0, block, offset, d.Length);
+            offset += d.Length;
+            System.Buffer.BlockCopy(e, 0, block, offset, e.Length);
+
+
+            return block;
+
         }
     }
 
