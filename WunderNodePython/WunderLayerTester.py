@@ -7,11 +7,14 @@ import WunderPackets
 def PrintStringData(sdBlock):
 	print sdBlock.SenderID + ": " + sdBlock.Data
 
+def FeatureData(fupacket):
+	print fupacket.SenderID + ":" + fupacket.FeatureName + ":" + fupacket.Data
+	
 testWunderLayer = WunderLayer.WunderLayer('t5','192.168.0.255')
 
 testWunderLayer.SendOnline()
 testWunderLayer.RegisterForStringDataPackets(PrintStringData)
-
+testWunderLayer.RegisterForFeatureUpdatePackets(FeatureData)
 testWunderLayer.AddFeature(WunderPackets.StandardFeature('FrontProps',WunderPackets.FeatureBaseTypes['INTVAL'],WunderPackets.FeatureIOTypes['OUTPUT']))
 testWunderLayer.AddFeature(WunderPackets.StandardFeature('RearProps',WunderPackets.FeatureBaseTypes['INTVAL'],WunderPackets.FeatureIOTypes['OUTPUT']))
 testWunderLayer.AddFeature(WunderPackets.StandardFeature('FrontSonar',WunderPackets.FeatureBaseTypes['INTVAL'],WunderPackets.FeatureIOTypes['INPUT']))

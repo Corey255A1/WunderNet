@@ -15,6 +15,7 @@ class WunderLayer:
 		self._BasePacketEventListeners = []
 		self._StringDataPacketEventListeners = []
 		self._DescriptionPacketEventListeners = []
+		self._UpdatePacketEventListeners = []
 		
 		self._packetFunctions = { 
 			WunderPackets.PacketTypes['ONLINE'] : self.ProcessBasePacket,
@@ -23,7 +24,8 @@ class WunderLayer:
 			WunderPackets.PacketTypes['DISCOVER'] : self.ProcessDiscover,
 			WunderPackets.PacketTypes['IDENTIFY'] : self.ProcessBasePacket,
 			WunderPackets.PacketTypes['DESCRIBE'] : self.ProcessDescribe,
-			WunderPackets.PacketTypes['DESCRIPTION'] : self.ProcessDescription
+			WunderPackets.PacketTypes['DESCRIPTION'] : self.ProcessDescription,
+			WunderPackets.PacketTypes['UPDATE'] : self.ProcessFeatureUpdate
 		}
 		
 	def RegisterForBasePackets(self, function):
@@ -34,6 +36,9 @@ class WunderLayer:
 		
 	def RegisterForDescriptionPackets(self, function):
 		self._DescriptionPacketEventListeners.append(function)
+	
+	def RegisterForFeatureUpdatePackets(self, function):
+		self._UpdatePacketEventListeners.append(function)
 		
 	def AddFeature(self, feature):
 		self.FeatureList.append(feature)
@@ -94,5 +99,11 @@ class WunderLayer:
 		if wpacket.ReceiverID == self.Identifier:
 			for callback in self._DescriptionPacketEventListeners:
 				callback(wpacket)
-	
+				
+	def ProcessFeatureUpdate(self, wpacket, rawdata):
+		if wpacket.ReceiverID == self.Identifier:
+			uBlock = WunderPackets.FeatureUpdatePacket()
+			uBlock.InitFromPacket(rawdata)
+			for callback in self._UpdatePacketEventListeners:
+				callback(uBlock)
 

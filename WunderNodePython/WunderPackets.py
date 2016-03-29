@@ -8,18 +8,22 @@ PacketTypes = { 'OFFLINE':     0,
 				'DESCRIBE':    4,
 				'DESCRIPTION': 5,
 				'SUBSCRIBE':   6,
-				'DATABLOCK':   7 }
+				'DATABLOCK':   7,
+				'STRING':      8,
+				'UPDATE':      9,
+				'COMMAND':     10}
 				
 FeatureIOTypes   = { 'INPUT':  0, 
 					 'OUTPUT': 1, 
 					 'INOUT':  2 }
 					 
-FeatureBaseTypes = { 'ONOFF':  0, 
-					 'INTVAL': 1 }
+FeatureBaseTypes = { 'ONOFF':     0, 
+					 'INTVAL':    1,
+					 'STRING':    2,
+					 'DATABLOCK': 3}
 
 WUNDERHEADER = "!!WunderPacket!!"
 WUNDERHEADERLEN = len(WUNDERHEADER)
-
 
 def CheckHeader(packet):
 	if len(packet) >= WUNDERHEADERLEN:
@@ -78,6 +82,33 @@ class StringDataPacket(BasePacket):
 	def GetBytes(self):
 		return BasePacket.GetBytes(self) + Int32ToCharArray(self.DataSize) + self.Data
 
+class FeatureUpdatePacket(BasePacket):
+	def __init__(self):
+		BasePacket.__init__(self)
+		self.FeatureName = ''
+		self.FeatureBaseType = FeatureBaseTypes['ONOFF']
+		self.DataSize = 0
+		self.Data = ''
+	
+	def InitPacket(self,sender,receiver,fname,ftype,data):
+		BasePacket.InitPacket(self,sender,receiver,PacketTypes['UPDATE'])
+		self.FeatureName = fname
+		self.FeatureBaseType = ftype
+		self.DataSize = len(data)
+		self.Data = data
+
+	def InitFromPacket(self,packet):
+		offset = BasePacket.InitFromPacket(self,packet)
+		self.FeatureName = packet[offset:offset+32].strip()
+		offset = offset+32
+		self.FeatureBaseType = CharArrayToInt32(packet[offset:offset+4])
+		offset = offset+4
+		self.DataSize = CharArrayToInt32(packet[offset:offset+4])
+		offset = offset+4
+		self.Data = packet[offset:]
+		
+	def GetBytes(self):
+		return BasePacket.GetBytes(self) + self.FeatureName +  Int32ToCharArray(self.FeatureBaseType) + Int32ToCharArray(self.DataSize) + self.Data
 		
 class StandardFeature():
 	def __init__(self, name, basetype, iotype):
