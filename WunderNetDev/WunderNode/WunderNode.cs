@@ -9,7 +9,7 @@ namespace WunderNetNode
 {
     public class WunderNode : WunderLayer
     {
-        private ArrayList FeatureList = new ArrayList();
+        private Hashtable FeatureList = new Hashtable();
         private Hashtable FeatureSubscribers = new Hashtable();
         private Hashtable SubscribedFeatures = new Hashtable();
         public WunderNode(string id): base(id)
@@ -23,7 +23,7 @@ namespace WunderNetNode
 
         public void AddFeature(string name, FeatureBaseTypes type, FeatureIOTypes io)
         {
-            FeatureList.Add(new StandardFeature(name, type, io));
+            FeatureList.Add(name, new StandardFeature(name, type, io));
             FeatureSubscribers.Add(name, new ArrayList());
         }
         public void SubscribeToFeature(string receiver, string name)
@@ -41,20 +41,27 @@ namespace WunderNetNode
         }
         public void UpdateFeature(string name, object value)
         {
-            StandardFeature sf = ((StandardFeature)FeatureList[FeatureList.IndexOf(name)]);
-            switch((FeatureBaseTypes)sf.FeatureBaseType)
+            if (FeatureList.ContainsKey(name))
             {
-                case FeatureBaseTypes.INT: SendFeatureUpdate("",name,(UInt32)value); break;
-                case FeatureBaseTypes.BOOL: SendFeatureUpdate("", name, (bool)value); break;
-                case FeatureBaseTypes.STRING: SendFeatureUpdate("", name, (string)value); break;
+                if(((ArrayList)FeatureSubscribers[name]).Count > 0)
+                {
+                    StandardFeature sf = ((StandardFeature)FeatureList[name]);
+                    switch ((FeatureBaseTypes)sf.FeatureBaseType)
+                    {
+                        case FeatureBaseTypes.INT: SendFeatureUpdate("", name, Convert.ToUInt32(value)); break;
+                        case FeatureBaseTypes.BOOL: SendFeatureUpdate("", name, Convert.ToBoolean(value)); break;
+                        case FeatureBaseTypes.STRING: SendFeatureUpdate("", name, Convert.ToString(value)); break;
+                    }
+                }
             }
             
         }
+
         protected override void ProcessDescribe(BasePacket bp)
         {
             if (bp.ReceiverID == this.Identifer)
             {
-                SendDescription(bp.SenderID, this.FeatureList);
+                SendDescription(bp.SenderID, this.FeatureList.Values);
             }
         }
         protected override void ProcessSubscribe(BasePacket bp, byte[] rawBytes)

@@ -140,6 +140,18 @@ namespace WunderNetNode
             }
             _TheNet.SendPacket(dp.GetBytes());
         }
+        protected void SendDescription(string receiver, ICollection sf)
+        {
+            DescriptionPacket dp = new DescriptionPacket();
+            dp.SenderID = Identifer;
+            dp.ReceiverID = receiver;
+            dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
+            foreach (StandardFeature f in sf)
+            {
+                dp.AddFeature(f);
+            }
+            _TheNet.SendPacket(dp.GetBytes());
+        }
         protected void SendIdentify(string receiver)
         {
             SendBasePacket(receiver, PacketTypes.IDENTIFY);

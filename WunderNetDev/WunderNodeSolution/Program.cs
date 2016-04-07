@@ -25,20 +25,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using WunderNetNode;
 namespace WunderNetTest
 {
     class Program
     {
+        static WunderNode wl;
+        static bool updateThread = false;
+        static Thread updateTest;
         static void Main(string[] args)
         {
-            WunderNode wl;
-            StandardFeature[] features = new StandardFeature[4];
-            features[0] = new StandardFeature("MotorLeft", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
-            features[1] = new StandardFeature("MotorRight", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
-            features[2] = new StandardFeature("FrontUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
-            features[3] = new StandardFeature("RearUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
-
+            
             if(args.Length > 0)
             {
                 wl = new WunderNode(args[0]);
@@ -61,6 +59,9 @@ namespace WunderNetTest
 
 
             string ConsoleIn = "";
+            updateThread = true;
+            updateTest = new Thread(TestUpdateThread);
+            updateTest.Start();
             while ((ConsoleIn = Console.ReadLine()) != "stop")
             {
                 string[] testing = ConsoleIn.Split(new char[] { ' ' }, 2);
@@ -95,9 +96,24 @@ namespace WunderNetTest
                 }
 
             }
+            updateThread = false;
             wl.Disconnect();
         }
 
+
+        private static void TestUpdateThread()
+        {
+            Random r = new Random();
+            while(updateThread)
+            {
+                if(wl!=null)
+                {
+                    wl.UpdateFeature("FrontUltrasonic", r.Next(15));
+                }
+                Thread.Sleep(50);
+            }
+
+        }
         private static void StringDataReceived(object sender, StringDataPacketEventArgs e)
         {
             Console.WriteLine(e.packet.SenderID + ": " + e.packet.Data);

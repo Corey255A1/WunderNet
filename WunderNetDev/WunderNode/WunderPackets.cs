@@ -14,7 +14,7 @@ using System.Collections;
 
 namespace WunderNetNode
 {
-    public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, DATABLOCK, STRING, UPDATE, COMMAND }
+    public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, UNSUBSCRIBE, DATABLOCK, STRING, UPDATE, COMMAND }
     public enum FeatureIOTypes { INPUT, OUTPUT, INOUT }
     public enum FeatureBaseTypes { BOOL, INT, STRING, DATABLOCK }
     public interface WunderPacket
@@ -236,10 +236,9 @@ namespace WunderNetNode
             byte[] b = Encoding.ASCII.GetBytes(s);
             byte[] c = BitConverter.GetBytes(this.FeatureBaseType);
             byte[] d = BitConverter.GetBytes(this._dataSize);
-            byte[] e = this.Data;
 
+            byte[] block = new byte[a.Length + b.Length + c.Length + d.Length + this._dataSize];
 
-            byte[] block = new byte[a.Length + b.Length + c.Length + d.Length + e.Length];
             int offset = 0;
             System.Buffer.BlockCopy(a, 0, block, offset, a.Length);
             offset += a.Length;
@@ -248,8 +247,11 @@ namespace WunderNetNode
             System.Buffer.BlockCopy(c, 0, block, offset, c.Length);
             offset += c.Length;
             System.Buffer.BlockCopy(d, 0, block, offset, d.Length);
-            offset += d.Length;
-            System.Buffer.BlockCopy(e, 0, block, offset, e.Length);
+            if (this._dataSize > 0)
+            {
+                offset += d.Length;
+                System.Buffer.BlockCopy(this.Data, 0, block, offset, this._dataSize);
+            }
 
 
             return block;
