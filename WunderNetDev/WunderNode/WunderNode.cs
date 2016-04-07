@@ -1,4 +1,15 @@
-﻿using System;
+﻿/**
+ * Author: Corey Wunderlich
+ * Date: 4/7/2016
+ * Description: The WunderNode. This handles even higher level
+ * stuff such as, handling the features the object has, handling
+ * the subscriptions and eventually other goodness.
+ * It is an extension of the WunderLayer and implements
+ * the process Describe and Subscribe functions.
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
