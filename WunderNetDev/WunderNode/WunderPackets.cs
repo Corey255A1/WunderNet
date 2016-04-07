@@ -16,7 +16,7 @@ namespace WunderNetNode
 {
     public enum PacketTypes { OFFLINE, ONLINE, DISCOVER, IDENTIFY, DESCRIBE, DESCRIPTION, SUBSCRIBE, DATABLOCK, STRING, UPDATE, COMMAND }
     public enum FeatureIOTypes { INPUT, OUTPUT, INOUT }
-    public enum FeatureBaseTypes { ONOFF, INTVAL, STRING, DATABLOCK }
+    public enum FeatureBaseTypes { BOOL, INT, STRING, DATABLOCK }
     public interface WunderPacket
     {
         byte[] GetBytes();
@@ -172,7 +172,7 @@ namespace WunderNetNode
         }
     }
 
-    public class FeatureUpdate : BasePacket
+    public class FeaturePacket : BasePacket
     {
         private string _featureName;
         public string FeatureName
@@ -193,16 +193,32 @@ namespace WunderNetNode
             set { _data = value; _dataSize = _data.Length; }
         }
 
-        public FeatureUpdate() { }
-        public FeatureUpdate(string sender, string receiver, string featureName, FeatureBaseTypes type)
+        public FeaturePacket() { }
+        public FeaturePacket(string sender, string receiver, string featureName, FeatureBaseTypes featuretype)
         {
             this.SenderID = sender;
             this.ReceiverID = receiver;
             this.PacketType = (Int32)PacketTypes.UPDATE;
             this.FeatureName = featureName;
-            this.FeatureBaseType = (Int32)type;
+            this.FeatureBaseType = (Int32)featuretype;
         }
-        public FeatureUpdate(byte[] b) : base(b)
+        public FeaturePacket(string sender, string receiver, string featureName, FeatureBaseTypes featuretype, PacketTypes packettype )
+        {
+            this.SenderID = sender;
+            this.ReceiverID = receiver;
+            this.PacketType = (Int32)packettype;
+            this.FeatureName = featureName;
+            this.FeatureBaseType = (Int32)featuretype;
+        }
+        public FeaturePacket(string sender, string receiver, string featureName, PacketTypes packettype)
+        {
+            this.SenderID = sender;
+            this.ReceiverID = receiver;
+            this.PacketType = (Int32)packettype;
+            this.FeatureName = featureName;
+            this.FeatureBaseType = 0;
+        }
+        public FeaturePacket(byte[] b) : base(b)
         {
             int offset = BASESIZE;
             this.FeatureName = Encoding.ASCII.GetString(b, offset, 32); offset += 32;

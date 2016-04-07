@@ -32,21 +32,27 @@ namespace WunderNetTest
     {
         static void Main(string[] args)
         {
-            WunderLayer wl;
+            WunderNode wl;
             StandardFeature[] features = new StandardFeature[4];
-            features[0] = new StandardFeature("MotorLeft", FeatureBaseTypes.INTVAL, FeatureIOTypes.OUTPUT);
-            features[1] = new StandardFeature("MotorRight", FeatureBaseTypes.INTVAL, FeatureIOTypes.OUTPUT);
-            features[2] = new StandardFeature("FrontUltrasonic", FeatureBaseTypes.INTVAL, FeatureIOTypes.INPUT);
-            features[3] = new StandardFeature("RearUltrasonic", FeatureBaseTypes.INTVAL, FeatureIOTypes.INPUT);
+            features[0] = new StandardFeature("MotorLeft", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
+            features[1] = new StandardFeature("MotorRight", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
+            features[2] = new StandardFeature("FrontUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
+            features[3] = new StandardFeature("RearUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
 
             if(args.Length > 0)
             {
-                wl = new WunderLayer(args[0], features);
+                wl = new WunderNode(args[0]);
             }
             else
             {
-                wl = new WunderLayer("Tester", features);
+                wl = new WunderNode("Tester");
             }
+
+
+            wl.AddFeature("MotorLeft", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
+            wl.AddFeature("MotorRight", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
+            wl.AddFeature("FrontUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
+            wl.AddFeature("RearUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
 
             wl.BasePacketReceived += BasePacketReceived;
             wl.StringDataReceived += StringDataReceived;
@@ -75,14 +81,17 @@ namespace WunderNetTest
                             testing = testing[1].Split(new char[] { ' ' }, 4);
                             switch (((FeatureBaseTypes)Convert.ToInt32(testing[2])))
                             {
-                                case FeatureBaseTypes.INTVAL:
-                                    wl.SendFeatureUpdate(testing[0], testing[1], FeatureBaseTypes.INTVAL, Convert.ToUInt32(testing[3])); break;
+                                case FeatureBaseTypes.INT:
+                                    wl.UpdateFeature(testing[1], Convert.ToUInt32(testing[3])); break;
                                 case FeatureBaseTypes.STRING:
-                                    wl.SendFeatureUpdate(testing[0], testing[1], FeatureBaseTypes.STRING, testing[3]); break;
+                                    wl.UpdateFeature(testing[1], testing[3]); break;
                             }
                         }break;
-                        
-
+                    case "subscribe":
+                        {
+                            testing = testing[1].Split(new char[] { ' ' }, 2);
+                            wl.SubscribeToFeature(testing[0], testing[1]);
+                        } break;
                 }
 
             }
@@ -117,13 +126,13 @@ namespace WunderNetTest
         {
             switch((FeatureBaseTypes)e.packet.FeatureBaseType)
             {
-                case FeatureBaseTypes.INTVAL:
+                case FeatureBaseTypes.INT:
                     {
                         uint val = BitConverter.ToUInt32(e.packet.Data, 0);
                         Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val.ToString());
                         break;
                     }
-                case FeatureBaseTypes.ONOFF:
+                case FeatureBaseTypes.BOOL:
                     {
                         bool val = BitConverter.ToBoolean(e.packet.Data, 0);
                         Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val.ToString());
