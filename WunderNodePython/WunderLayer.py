@@ -7,7 +7,7 @@ import WunderPackets
 class WunderLayer:
 	def __init__(self, id, baddr):
 		self.Identifier = id
-		self.FeatureList = []
+
 		self.TheNet = WunderNet.WunderNet(baddr)
 		self.TheNet.RegisterCallback(self.ProcessWunderNet)
 		self.TheNet.StartListening(1000)
@@ -25,7 +25,8 @@ class WunderLayer:
 			WunderPackets.PacketTypes['IDENTIFY'] : self.ProcessBasePacket,
 			WunderPackets.PacketTypes['DESCRIBE'] : self.ProcessDescribe,
 			WunderPackets.PacketTypes['DESCRIPTION'] : self.ProcessDescription,
-			WunderPackets.PacketTypes['UPDATE'] : self.ProcessFeatureUpdate
+			WunderPackets.PacketTypes['UPDATE'] : self.ProcessFeatureUpdate,
+			WunderPackets.PacketTypes['SUBSCRIBE'] : self.ProcessSubscribe
 		}
 		
 	def RegisterForBasePackets(self, function):
@@ -37,7 +38,7 @@ class WunderLayer:
 	def RegisterForDescriptionPackets(self, function):
 		self._DescriptionPacketEventListeners.append(function)
 	
-	def RegisterForFeatureUpdatePackets(self, function):
+	def RegisterForFeaturePackets(self, function):
 		self._UpdatePacketEventListeners.append(function)
 		
 	def AddFeature(self, feature):
@@ -63,10 +64,20 @@ class WunderLayer:
 		p.InitPacket(self.Identifier, receiver, features)
 		self.TheNet.SendPacket(p.GetBytes())
 	
+	def SendFeatureUpdate(self, receiver, fname, ftype, fdata):
+		p = WunderPackets.FeaturePacket()
+		p.InitPacket(self.Identifier, receiver, WunderPackets.PacketTypes['UPDATE'],fname,ftype,fdata)
+		# print p.GetBytes()
+		self.TheNet.SendPacket(p.GetBytes())
+	
+	def SendFeatureSubscribe(self, receiver, fname):
+		p = WunderPackets.FeaturePacket()
+		p.InitPacket(self.Identifier, receiver, WunderPackets.PacketTypes['SUBSCRIBE'],fname,0,'')
+		self.TheNet.SendPacket(p.GetBytes())
+	
 	def Disconnect(self):
 		self.SendOffline()
 		self.TheNet.StopListening()
-		
 	
 	def ProcessWunderNet(self,data,*args):
 		if WunderPackets.CheckHeader(data):
@@ -92,9 +103,11 @@ class WunderLayer:
 			for callback in self._StringDataPacketEventListeners:
 				callback(dBlock)
 	def ProcessDescribe(self, wpacket, rawdata):
-		if wpacket.ReceiverID == self.Identifier:
-			self.SendDesciption(wpacket.SenderID, self.FeatureList)
-			
+		return False
+	
+	def ProcessSubscribe(self, wpacket, rawdata):
+		return False
+		
 	def ProcessDescription(self, wpacket, rawdata):
 		if wpacket.ReceiverID == self.Identifier:
 			for callback in self._DescriptionPacketEventListeners:
@@ -102,7 +115,7 @@ class WunderLayer:
 				
 	def ProcessFeatureUpdate(self, wpacket, rawdata):
 		if wpacket.ReceiverID == self.Identifier:
-			uBlock = WunderPackets.FeatureUpdatePacket()
+			uBlock = WunderPackets.FeaturePacket()
 			uBlock.InitFromPacket(rawdata)
 			for callback in self._UpdatePacketEventListeners:
 				callback(uBlock)

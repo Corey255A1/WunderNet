@@ -40,7 +40,7 @@ namespace WunderNetNode
     public class WunderLayer
     {
         WunderNet _TheNet;
-        public string Identifer;
+        public string Identifier;
         public event EventHandler<BasePacketEventArgs> BasePacketReceived;
         public event EventHandler<StringDataPacketEventArgs> StringDataReceived;
         public event EventHandler<DescriptionPacketEventArgs> DescriptionReceived;
@@ -55,7 +55,7 @@ namespace WunderNetNode
         }
         private void WunderLayerSharedConstructor(string id, string ip, int port)
         {
-            this.Identifer = id;
+            this.Identifier = id;
             _TheNet = new WunderNet();
             if (ip != "") _TheNet.SetTXPort(ip, port);
             else _TheNet.SetTXPort(port);
@@ -75,7 +75,7 @@ namespace WunderNetNode
         public void SendStringData(string receiver, string data)
         {
             StringDataPacket wp = new StringDataPacket();
-            wp.SenderID = Identifer;
+            wp.SenderID = Identifier;
             wp.ReceiverID = receiver;
             wp.PacketType = (Int32)PacketTypes.STRING;
             wp.Data = data;
@@ -93,25 +93,25 @@ namespace WunderNetNode
         }
         protected void SendFeatureUpdate(string receiver, string featureName, string s)
         {
-            FeaturePacket update = new FeaturePacket(this.Identifer, receiver, featureName, FeatureBaseTypes.STRING);
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.STRING);
             update.Data = Encoding.ASCII.GetBytes(s);
             _TheNet.SendPacket(update.GetBytes());
         }
         protected void SendFeatureUpdate(string receiver, string featureName, UInt32 s)
         {
-            FeaturePacket update = new FeaturePacket(this.Identifer, receiver, featureName, FeatureBaseTypes.INT);
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.INT);
             update.Data = BitConverter.GetBytes(s);
             _TheNet.SendPacket(update.GetBytes());
         }
         protected void SendFeatureUpdate(string receiver, string featureName, bool s)
         {
-            FeaturePacket update = new FeaturePacket(this.Identifer, receiver, featureName, FeatureBaseTypes.BOOL);
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.BOOL);
             update.Data = BitConverter.GetBytes(s);
             _TheNet.SendPacket(update.GetBytes());
         }
         protected void SendFeatureSubscribe(string receiver, string featureName)
         {
-            FeaturePacket subs = new FeaturePacket(this.Identifer, receiver, featureName, PacketTypes.SUBSCRIBE);
+            FeaturePacket subs = new FeaturePacket(this.Identifier, receiver, featureName, PacketTypes.SUBSCRIBE);
             _TheNet.SendPacket(subs.GetBytes());
         }
 
@@ -119,7 +119,7 @@ namespace WunderNetNode
         protected void SendDescription(string receiver, StandardFeature[] sf)
         {
             DescriptionPacket dp = new DescriptionPacket();
-            dp.SenderID = Identifer;
+            dp.SenderID = Identifier;
             dp.ReceiverID = receiver;
             dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
             foreach (StandardFeature f in sf)
@@ -131,7 +131,7 @@ namespace WunderNetNode
         protected void SendDescription(string receiver, ArrayList sf)
         {
             DescriptionPacket dp = new DescriptionPacket();
-            dp.SenderID = Identifer;
+            dp.SenderID = Identifier;
             dp.ReceiverID = receiver;
             dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
             foreach (StandardFeature f in sf)
@@ -143,7 +143,7 @@ namespace WunderNetNode
         protected void SendDescription(string receiver, ICollection sf)
         {
             DescriptionPacket dp = new DescriptionPacket();
-            dp.SenderID = Identifer;
+            dp.SenderID = Identifier;
             dp.ReceiverID = receiver;
             dp.PacketType = (Int32)PacketTypes.DESCRIPTION;
             foreach (StandardFeature f in sf)
@@ -163,7 +163,7 @@ namespace WunderNetNode
         protected void SendBasePacket(string receiver, PacketTypes type)
         {
             BasePacket wp = new BasePacket();
-            wp.SenderID = Identifer;
+            wp.SenderID = Identifier;
             wp.ReceiverID = receiver;
             wp.PacketType = (Int32)type;
             _TheNet.SendPacket(wp.GetBytes());
@@ -175,7 +175,7 @@ namespace WunderNetNode
             {
                 BasePacket bp = new BasePacket(e.RawData);
 
-                if (bp.SenderID == this.Identifer) return;
+                if (bp.SenderID == this.Identifier) return;
 
                 switch((PacketTypes)bp.PacketType)
                 {
@@ -238,7 +238,7 @@ namespace WunderNetNode
 
         protected void ProcessDataBlock(BasePacket bp, byte[] rawBytes)
         {
-            if (bp.ReceiverID == this.Identifer)
+            if (bp.ReceiverID == this.Identifier)
             {
                 StringDataPacket sdp = new StringDataPacket(rawBytes);
                 ProcessStringDataPacketCallbacks(sdp);
@@ -252,11 +252,11 @@ namespace WunderNetNode
         protected virtual void ProcessSubscribe(BasePacket bp, byte[] rawBytes) { }
         protected void ProcessIdentify(BasePacket bp)
         {
-            if (bp.ReceiverID == this.Identifer) ProcessBasePacketCallbacks(bp);
+            if (bp.ReceiverID == this.Identifier) ProcessBasePacketCallbacks(bp);
         }
         protected void ProcessDecription(BasePacket bp, byte[] rawBytes)
         {
-            if (bp.ReceiverID == this.Identifer)
+            if (bp.ReceiverID == this.Identifier)
             {
                 DescriptionPacket dp = new DescriptionPacket(rawBytes);
                 ProcessDescriptionPacketCallbacks(dp);
@@ -264,7 +264,7 @@ namespace WunderNetNode
         }
         protected virtual void ProcessFeatureUpdate(BasePacket bp, byte[] rawBytes)
         {
-            if (bp.ReceiverID == this.Identifer)
+            if (bp.ReceiverID == this.Identifier)
             {
                 FeaturePacket dp = new FeaturePacket(rawBytes);
                 ProcessFeatureUpdateCallbacks(dp);

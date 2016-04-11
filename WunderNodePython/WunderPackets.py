@@ -8,17 +8,18 @@ PacketTypes = { 'OFFLINE':     0,
 				'DESCRIBE':    4,
 				'DESCRIPTION': 5,
 				'SUBSCRIBE':   6,
-				'DATABLOCK':   7,
-				'STRING':      8,
-				'UPDATE':      9,
-				'COMMAND':     10}
+				'UNSUBSCRIBE': 7,
+				'DATABLOCK':   8,
+				'STRING':      9,
+				'UPDATE':      10,
+				'COMMAND':     11}
 				
 FeatureIOTypes   = { 'INPUT':  0, 
 					 'OUTPUT': 1, 
 					 'INOUT':  2 }
 					 
-FeatureBaseTypes = { 'ONOFF':     0, 
-					 'INTVAL':    1,
+FeatureBaseTypes = { 'BOOL':      0, 
+					 'INT':       1,
 					 'STRING':    2,
 					 'DATABLOCK': 3}
 
@@ -82,20 +83,24 @@ class StringDataPacket(BasePacket):
 	def GetBytes(self):
 		return BasePacket.GetBytes(self) + Int32ToCharArray(self.DataSize) + self.Data
 
-class FeatureUpdatePacket(BasePacket):
+class FeaturePacket(BasePacket):
 	def __init__(self):
 		BasePacket.__init__(self)
 		self.FeatureName = ''
-		self.FeatureBaseType = FeatureBaseTypes['ONOFF']
+		self.FeatureBaseType = FeatureBaseTypes['BOOL']
 		self.DataSize = 0
 		self.Data = ''
 	
-	def InitPacket(self,sender,receiver,fname,ftype,data):
-		BasePacket.InitPacket(self,sender,receiver,PacketTypes['UPDATE'])
+	def InitPacket(self,sender,receiver,packetType,fname,ftype,fdata):
+		BasePacket.InitPacket(self,sender,receiver,packetType)
 		self.FeatureName = fname
 		self.FeatureBaseType = ftype
-		self.DataSize = len(data)
-		self.Data = data
+		
+		if ftype == FeatureBaseTypes['STRING'] or ftype == FeatureBaseTypes['DATABLOCK']: 
+			self.DataSize = len(fdata)
+		else:
+			self.DataSize = 4
+		self.Data = fdata
 
 	def InitFromPacket(self,packet):
 		offset = BasePacket.InitFromPacket(self,packet)
@@ -108,7 +113,12 @@ class FeatureUpdatePacket(BasePacket):
 		self.Data = packet[offset:]
 		
 	def GetBytes(self):
-		return BasePacket.GetBytes(self) + self.FeatureName +  Int32ToCharArray(self.FeatureBaseType) + Int32ToCharArray(self.DataSize) + self.Data
+		sData = ''
+		if self.FeatureBaseType == FeatureBaseTypes['STRING'] or self.FeatureBaseType == FeatureBaseTypes['DATABLOCK']: 
+			sData = self.Data
+		else:
+			sData = Int32ToCharArray(self.Data)
+		return BasePacket.GetBytes(self) + self.FeatureName.ljust(32,' ') +  Int32ToCharArray(self.FeatureBaseType) + Int32ToCharArray(self.DataSize) + sData
 		
 class StandardFeature():
 	def __init__(self, name, basetype, iotype):

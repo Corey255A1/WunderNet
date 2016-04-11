@@ -70,14 +70,14 @@ namespace WunderNetNode
 
         protected override void ProcessDescribe(BasePacket bp)
         {
-            if (bp.ReceiverID == this.Identifer)
+            if (bp.ReceiverID == this.Identifier)
             {
                 SendDescription(bp.SenderID, this.FeatureList.Values);
             }
         }
         protected override void ProcessSubscribe(BasePacket bp, byte[] rawBytes)
         {
-            if (bp.ReceiverID == this.Identifer)
+            if (bp.ReceiverID == this.Identifier)
             {
                 FeaturePacket fp = new FeaturePacket(rawBytes);
                 if(FeatureSubscribers.ContainsKey(fp.FeatureName))
