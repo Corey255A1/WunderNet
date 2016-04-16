@@ -20,6 +20,11 @@ namespace WunderNetNode
 {
     public class WunderNode : WunderLayer
     {
+        private struct SubscribedType
+        {
+            public String Name;
+            public FeatureBaseTypes Type;
+        }
         private Hashtable FeatureList = new Hashtable();
         private Hashtable FeatureSubscribers = new Hashtable();
         private Hashtable SubscribedFeatures = new Hashtable();
@@ -37,19 +42,6 @@ namespace WunderNetNode
             FeatureList.Add(name, new StandardFeature(name, type, io));
             FeatureSubscribers.Add(name, new ArrayList());
         }
-        public void SubscribeToFeature(string receiver, string name)
-        {
-            if (SubscribedFeatures.ContainsKey(receiver))
-            {
-                ((ArrayList)SubscribedFeatures[receiver]).Add(name);
-            }
-            else
-            {
-                SubscribedFeatures.Add(receiver, new ArrayList());
-                ((ArrayList)SubscribedFeatures[receiver]).Add(name);
-            }
-            SendFeatureSubscribe(receiver, name);
-        }
         public void UpdateFeature(string name, object value)
         {
             if (FeatureList.ContainsKey(name))
@@ -59,7 +51,7 @@ namespace WunderNetNode
                     StandardFeature sf = ((StandardFeature)FeatureList[name]);
                     switch ((FeatureBaseTypes)sf.FeatureBaseType)
                     {
-                        case FeatureBaseTypes.INT: SendFeatureUpdate("", name, Convert.ToUInt32(value)); break;
+                        case FeatureBaseTypes.INT: SendFeatureUpdate("", name, Convert.ToInt32(value)); break;
                         case FeatureBaseTypes.BOOL: SendFeatureUpdate("", name, Convert.ToBoolean(value)); break;
                         case FeatureBaseTypes.STRING: SendFeatureUpdate("", name, Convert.ToString(value)); break;
                     }
@@ -67,7 +59,53 @@ namespace WunderNetNode
             }
             
         }
+        public void SubscribeToFeature(string receiver, string name, FeatureBaseTypes type)
+        {
+            SubscribedType st = new SubscribedType();
+            st.Name = name;
+            st.Type = type;
+            if (SubscribedFeatures.ContainsKey(receiver))
+            {
+                ((ArrayList)SubscribedFeatures[receiver]).Add(st);
+            }
+            else
+            {
+                SubscribedFeatures.Add(receiver, new ArrayList());
+                ((ArrayList)SubscribedFeatures[receiver]).Add(st);
+            }
+            SendFeatureSubscribe(receiver, name);
+        }
+        public void CommandFeature(string receiver, string name, object value)
+        {
+            if (SubscribedFeatures.ContainsKey(receiver))
+            {
+                foreach (SubscribedType st in (((ArrayList)SubscribedFeatures[receiver])))
+                {
+                    if (st.Name == name)
+                    {
+                        switch (st.Type)
+                        {
+                            case FeatureBaseTypes.INT: SendFeatureCommand(receiver, name, Convert.ToInt32(value)); break;
+                            case FeatureBaseTypes.BOOL: SendFeatureCommand(receiver, name, Convert.ToBoolean(value)); break;
+                            case FeatureBaseTypes.STRING: SendFeatureCommand(receiver, name, Convert.ToString(value)); break;
+                        }
+                        return;
+                    }
+                }
+            }
 
+        }
+        protected bool IsSubscribedToFeature(string sender, string featurename)
+        {
+            if (SubscribedFeatures.ContainsKey(sender))
+            {
+                foreach (SubscribedType st in (((ArrayList)SubscribedFeatures[sender])))
+                {
+                    if (st.Name == featurename) return true;
+                }
+            }
+            return false;
+        }
         protected override void ProcessDescribe(BasePacket bp)
         {
             if (bp.ReceiverID == this.Identifier)
@@ -87,23 +125,23 @@ namespace WunderNetNode
                 }
             }
         }
-        protected bool IsSubscribedToFeature(string sender, string featurename)
-        {
-            if (SubscribedFeatures.ContainsKey(sender))
-            {
-                if (((ArrayList)SubscribedFeatures[sender]).Contains(featurename))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         protected override void ProcessFeatureUpdate(BasePacket bp, byte[] rawBytes)
         {
             FeaturePacket dp = new FeaturePacket(rawBytes);
             if (IsSubscribedToFeature(dp.SenderID, dp.FeatureName))
             {
                 ProcessFeatureUpdateCallbacks(dp);
+            }
+        }
+        protected override void ProcessFeatureCommand(BasePacket bp, byte[] rawBytes)
+        {
+            if (bp.ReceiverID == this.Identifier)
+            {
+                FeaturePacket dp = new FeaturePacket(rawBytes);
+                if (FeatureList.ContainsKey(dp.FeatureName))
+                {
+                    ProcessFeatureCommandCallbacks(dp);
+                }
             }
         }
 

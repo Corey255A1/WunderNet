@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace WunderNetTest
         static WunderNode wl;
         static bool updateThread = false;
         static Thread updateTest;
+        static Hashtable FeatureValues = new Hashtable();
         static void Main(string[] args)
         {
             
@@ -46,7 +48,10 @@ namespace WunderNetTest
                 wl = new WunderNode("Tester");
             }
 
-
+            FeatureValues.Add("MotorLeft", 0);
+            FeatureValues.Add("MotorRight", 0);
+            FeatureValues.Add("FrontUltrasonic", 0);
+            FeatureValues.Add("RearUltrasonic", 0);
             wl.AddFeature("MotorLeft", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
             wl.AddFeature("MotorRight", FeatureBaseTypes.INT, FeatureIOTypes.OUTPUT);
             wl.AddFeature("FrontUltrasonic", FeatureBaseTypes.INT, FeatureIOTypes.INPUT);
@@ -56,7 +61,7 @@ namespace WunderNetTest
             wl.StringDataReceived += StringDataReceived;
             wl.DescriptionReceived += DescriptionReceived;
             wl.FeatureUpdateReceived += FeatureUpdateReceived;
-
+            wl.FeatureCommandReceived += FeatureCommandReceived;
 
             string ConsoleIn = "";
             updateThread = true;
@@ -83,15 +88,20 @@ namespace WunderNetTest
                             switch (((FeatureBaseTypes)Convert.ToInt32(testing[2])))
                             {
                                 case FeatureBaseTypes.INT:
-                                    wl.UpdateFeature(testing[1], Convert.ToUInt32(testing[3])); break;
+                                    wl.UpdateFeature(testing[1], Convert.ToInt32(testing[3])); break;
                                 case FeatureBaseTypes.STRING:
                                     wl.UpdateFeature(testing[1], testing[3]); break;
                             }
                         }break;
                     case "subscribe":
                         {
-                            testing = testing[1].Split(new char[] { ' ' }, 2);
-                            wl.SubscribeToFeature(testing[0], testing[1]);
+                            testing = testing[1].Split(new char[] { ' ' }, 3);
+                            wl.SubscribeToFeature(testing[0], testing[1], (FeatureBaseTypes)Convert.ToInt32(testing[2]));
+                        } break;
+                    case "command":
+                        {
+                            testing = testing[1].Split(new char[] { ' ' }, 3);
+                            wl.CommandFeature(testing[0],testing[1], Convert.ToInt32(testing[2]));
                         } break;
                 }
 
@@ -109,6 +119,7 @@ namespace WunderNetTest
                 if(wl!=null)
                 {
                     wl.UpdateFeature("FrontUltrasonic", r.Next(15));
+                    wl.UpdateFeature("MotorLeft", (int)FeatureValues["MotorLeft"]);
                 }
                 Thread.Sleep(50);
             }
@@ -144,7 +155,7 @@ namespace WunderNetTest
             {
                 case FeatureBaseTypes.INT:
                     {
-                        uint val = BitConverter.ToUInt32(e.packet.Data, 0);
+                        int val = BitConverter.ToInt32(e.packet.Data, 0);
                         Console.WriteLine(e.packet.SenderID + " " + e.packet.FeatureName + " value: " + val.ToString());
                         break;
                     }
@@ -161,6 +172,15 @@ namespace WunderNetTest
                         break;
                     }
 
+            }
+        }
+        private static void FeatureCommandReceived(object sender, FeatureCommandPacketEventArgs e)
+        {
+            switch ((FeatureBaseTypes)e.packet.FeatureBaseType)
+            {
+                case FeatureBaseTypes.INT: FeatureValues[e.packet.FeatureName] = BitConverter.ToInt32(e.packet.Data, 0); break;
+                case FeatureBaseTypes.BOOL: FeatureValues[e.packet.FeatureName] = BitConverter.ToBoolean(e.packet.Data, 0); break;
+                case FeatureBaseTypes.STRING: FeatureValues[e.packet.FeatureName] = Encoding.ASCII.GetString(e.packet.Data); break;
             }
         }
 

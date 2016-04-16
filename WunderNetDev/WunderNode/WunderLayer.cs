@@ -36,6 +36,10 @@ namespace WunderNetNode
     {
         public FeaturePacket packet;
     }
+    public class FeatureCommandPacketEventArgs : EventArgs
+    {
+        public FeaturePacket packet;
+    }
     
     public class WunderLayer
     {
@@ -45,6 +49,7 @@ namespace WunderNetNode
         public event EventHandler<StringDataPacketEventArgs> StringDataReceived;
         public event EventHandler<DescriptionPacketEventArgs> DescriptionReceived;
         public event EventHandler<FeatureUpdatePacketEventArgs> FeatureUpdateReceived;
+        public event EventHandler<FeatureCommandPacketEventArgs> FeatureCommandReceived;
         public WunderLayer(string id)
         {
             this.WunderLayerSharedConstructor(id, "", 1000);
@@ -97,7 +102,7 @@ namespace WunderNetNode
             update.Data = Encoding.ASCII.GetBytes(s);
             _TheNet.SendPacket(update.GetBytes());
         }
-        protected void SendFeatureUpdate(string receiver, string featureName, UInt32 s)
+        protected void SendFeatureUpdate(string receiver, string featureName, Int32 s)
         {
             FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.INT);
             update.Data = BitConverter.GetBytes(s);
@@ -106,6 +111,24 @@ namespace WunderNetNode
         protected void SendFeatureUpdate(string receiver, string featureName, bool s)
         {
             FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.BOOL);
+            update.Data = BitConverter.GetBytes(s);
+            _TheNet.SendPacket(update.GetBytes());
+        }
+        protected void SendFeatureCommand(string receiver, string featureName, string s)
+        {
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.STRING, PacketTypes.COMMAND);
+            update.Data = Encoding.ASCII.GetBytes(s);
+            _TheNet.SendPacket(update.GetBytes());
+        }
+        protected void SendFeatureCommand(string receiver, string featureName, Int32 s)
+        {
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.INT, PacketTypes.COMMAND);
+            update.Data = BitConverter.GetBytes(s);
+            _TheNet.SendPacket(update.GetBytes());
+        }
+        protected void SendFeatureCommand(string receiver, string featureName, bool s)
+        {
+            FeaturePacket update = new FeaturePacket(this.Identifier, receiver, featureName, FeatureBaseTypes.BOOL, PacketTypes.COMMAND);
             update.Data = BitConverter.GetBytes(s);
             _TheNet.SendPacket(update.GetBytes());
         }
@@ -188,7 +211,7 @@ namespace WunderNetNode
                     case PacketTypes.DESCRIBE: ProcessDescribe(bp); break;
                     case PacketTypes.DESCRIPTION: ProcessDecription(bp, e.RawData); break;
                     case PacketTypes.UPDATE: ProcessFeatureUpdate(bp, e.RawData); break;
-                    case PacketTypes.COMMAND: ProcessBasePacketCallbacks(bp); break;
+                    case PacketTypes.COMMAND: ProcessFeatureCommand(bp, e.RawData); break;
                     case PacketTypes.SUBSCRIBE: ProcessSubscribe(bp, e.RawData); break;
                 }
 
@@ -235,6 +258,16 @@ namespace WunderNetNode
                 ((EventHandler<FeatureUpdatePacketEventArgs>)el).Invoke(this, e);
             }
         }
+        protected void ProcessFeatureCommandCallbacks(FeaturePacket p)
+        {
+            Delegate[] registeredEvents = FeatureCommandReceived.GetInvocationList();
+            FeatureCommandPacketEventArgs e = new FeatureCommandPacketEventArgs();
+            e.packet = p;
+            foreach (Delegate el in registeredEvents)
+            {
+                ((EventHandler<FeatureCommandPacketEventArgs>)el).Invoke(this, e);
+            }
+        }
 
         protected void ProcessDataBlock(BasePacket bp, byte[] rawBytes)
         {
@@ -248,8 +281,6 @@ namespace WunderNetNode
         {
             SendIdentify(bp.SenderID);
         }
-        protected virtual void ProcessDescribe(BasePacket bp) { }
-        protected virtual void ProcessSubscribe(BasePacket bp, byte[] rawBytes) { }
         protected void ProcessIdentify(BasePacket bp)
         {
             if (bp.ReceiverID == this.Identifier) ProcessBasePacketCallbacks(bp);
@@ -262,12 +293,23 @@ namespace WunderNetNode
                 ProcessDescriptionPacketCallbacks(dp);
             }
         }
+
+        protected virtual void ProcessDescribe(BasePacket bp) { }
+        protected virtual void ProcessSubscribe(BasePacket bp, byte[] rawBytes) { }
         protected virtual void ProcessFeatureUpdate(BasePacket bp, byte[] rawBytes)
         {
             if (bp.ReceiverID == this.Identifier)
             {
                 FeaturePacket dp = new FeaturePacket(rawBytes);
                 ProcessFeatureUpdateCallbacks(dp);
+            }
+        }
+        protected virtual void ProcessFeatureCommand(BasePacket bp, byte[] rawBytes)
+        {
+            if (bp.ReceiverID == this.Identifier)
+            {
+                FeaturePacket dp = new FeaturePacket(rawBytes);
+                ProcessFeatureCommandCallbacks(dp);
             }
         }
 
