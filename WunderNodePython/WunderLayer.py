@@ -16,6 +16,7 @@ class WunderLayer:
 		self._StringDataPacketEventListeners = []
 		self._DescriptionPacketEventListeners = []
 		self._UpdatePacketEventListeners = []
+		self._CommandPacketEventListeners = []
 		
 		self._packetFunctions = { 
 			WunderPackets.PacketTypes['ONLINE'] : self.ProcessBasePacket,
@@ -26,6 +27,7 @@ class WunderLayer:
 			WunderPackets.PacketTypes['DESCRIBE'] : self.ProcessDescribe,
 			WunderPackets.PacketTypes['DESCRIPTION'] : self.ProcessDescription,
 			WunderPackets.PacketTypes['UPDATE'] : self.ProcessFeatureUpdate,
+			WunderPackets.PacketTypes['COMMAND'] : self.ProcessFeatureCommand,
 			WunderPackets.PacketTypes['SUBSCRIBE'] : self.ProcessSubscribe
 		}
 		
@@ -40,6 +42,9 @@ class WunderLayer:
 	
 	def RegisterForFeaturePackets(self, function):
 		self._UpdatePacketEventListeners.append(function)
+		
+	def RegisterForFeatureCommands(self, function):
+		self._CommandPacketEventListeners.append(function)
 		
 	def AddFeature(self, feature):
 		self.FeatureList.append(feature)
@@ -67,8 +72,12 @@ class WunderLayer:
 	def SendFeatureUpdate(self, receiver, fname, ftype, fdata):
 		p = WunderPackets.FeaturePacket()
 		p.InitPacket(self.Identifier, receiver, WunderPackets.PacketTypes['UPDATE'],fname,ftype,fdata)
-		# print p.GetBytes()
 		self.TheNet.SendPacket(p.GetBytes())
+		
+	def SendFeatureCommand(self, receiver, fname, ftype, fdata):
+		p = WunderPackets.FeaturePacket()
+		p.InitPacket(self.Identifier, receiver, WunderPackets.PacketTypes['COMMAND'],fname,ftype,fdata)
+		self.TheNet.SendPacket(p.GetBytes())	
 	
 	def SendFeatureSubscribe(self, receiver, fname):
 		p = WunderPackets.FeaturePacket()
@@ -118,5 +127,12 @@ class WunderLayer:
 			uBlock = WunderPackets.FeaturePacket()
 			uBlock.InitFromPacket(rawdata)
 			for callback in self._UpdatePacketEventListeners:
+				callback(uBlock)
+				
+	def ProcessFeatureCommand(self, wpacket, rawdata):
+		if wpacket.ReceiverID == self.Identifier:
+			uBlock = WunderPackets.FeaturePacket()
+			uBlock.InitFromPacket(rawdata)
+			for callback in self._CommandPacketEventListeners:
 				callback(uBlock)
 

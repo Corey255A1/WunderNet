@@ -15,12 +15,14 @@ def PrintStringData(sdBlock):
 def FeatureData(fupacket):
 	print fupacket.SenderID + ":" + fupacket.FeatureName + ":" + fupacket.Data
 
-
+def CommandData(fupacket):
+	print "Command: " + fupacket.SenderID + ":" + fupacket.FeatureName + ":" + fupacket.Data
 		
 testWunderNode = WunderNode.WunderNode('t5','192.168.0.255')
 
 testWunderNode.RegisterForStringDataPackets(PrintStringData)
 testWunderNode.RegisterForFeaturePackets(FeatureData)
+testWunderNode.RegisterForFeatureCommands(CommandData)
 testWunderNode.AddFeature('FrontProps',WunderPackets.FeatureBaseTypes['INT'],WunderPackets.FeatureIOTypes['OUTPUT'])
 testWunderNode.AddFeature('RearProps',WunderPackets.FeatureBaseTypes['INT'],WunderPackets.FeatureIOTypes['OUTPUT'])
 testWunderNode.AddFeature('FrontSonar',WunderPackets.FeatureBaseTypes['INT'],WunderPackets.FeatureIOTypes['INPUT'])
